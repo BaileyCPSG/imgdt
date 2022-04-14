@@ -19,5 +19,7 @@ To use this script use must have a csv file with the headers url and filename in
 Program Execution looks like this:
 1. Asks for location of log file.
 2. Asks for location of directory to store images in
-3. Asks for the input csv fil
+3. Asks for the input csv file
 4. Downloads images to the image directory
+5. Asks user if they want to resize images.
+6. If yes resizes images to a max of 600x600
