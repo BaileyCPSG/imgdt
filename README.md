@@ -1,0 +1,23 @@
+# Image Downloader Tool
+A small script I wrote for my manager to download a whole bunch of images from a csv file
+
+# Table of Contents
+1. [Installation](#installation)
+2. [Usage](#usage)
+
+## Installation
+To install this script just clone this repo and copy the python file to a location on your `$PATH`:
+```bash
+git clone https://github.com/BaileyCPSG/imgdt.git
+cd imgdt
+cp src/imgdt.py path/to/destination
+```
+
+## Usage
+To use this script use must have a csv file with the headers url and filename in that order. The filenames must contain the extension that you would like to use on the filename.
+
+Program Execution looks like this:
+1. Asks for location of log file.
+2. Asks for location of directory to store images in
+3. Asks for the input csv fil
+4. Downloads images to the image directory
