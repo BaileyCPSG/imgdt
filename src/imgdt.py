@@ -1,7 +1,21 @@
 import csv
 import os
+from PIL import Image
 import requests
 from tkinter import filedialog as fd
+
+def resizeAllImages(imagedir):
+    imgs = os.listdir(imagedir)
+    try:
+        for x in range(len(imgs)):
+            fp = imagedir + imgs[x]
+            img = Image.open(fp)
+            img.thumbnail((600, 600))
+            img.save(fp)
+            img.close()
+            print(f"{fp} was resized successfully!")
+    except Exception as e:
+        print(e)
 
 def main():
     try:
@@ -58,6 +72,19 @@ def main():
                 print(e)
                 errfile.write(f"{e}\n")
         print(f"\n{len(os.listdir(imagedir))} files downloaded successfully!\n")
+        
+
+        # Ask for resize
+        while(True):
+            rsz = input("\nDo you want to resize all the images (y/N): ")
+            if not rsz or rsz.lower() == "n":
+                print("Goodbye!")
+                exit(0)
+            elif rsz.lower() == "y":
+                resizeAllImages(imagedir)
+                break
+            else:
+                print("Please choose y or n!")
     except Exception as e:
         print(e)
     finally:
