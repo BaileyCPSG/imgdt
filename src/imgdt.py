@@ -25,7 +25,7 @@ def main():
         urls = []   # urls list
         errfilepath = fd.askopenfilename(title="Select Location of Error File") # location of error file
         errfile = open(errfilepath, 'w')
-        csvfilepath = fd.askopenfilename(title="Select The CSV File", filetypes=[('csvfiles', '.csv')]) # location of csv file containing urls and filenames
+        csvfilepath = fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')]) # location of csv file containing urls and filenames
         imagedir = fd.askdirectory(title="Select Location of Image Direcotry")  # location of directory to download images to
         imagedir = imagedir + "/"
         
@@ -47,17 +47,27 @@ def main():
     except Exception as e:
         print("Error: You must choose a location!")
         exit(-1)
-    
+
+
     # tries to make a request the image link and download the file
     try:
-        with open(csvfilepath) as csvfile:
+        # try to open the file normally and check for correct headers
+        csvfile = open(csvfilepath, "r")
+        reader = csv.DictReader(csvfile)
+        if reader.fieldnames != ['url', 'filename']:
+            # if headers are bad then try opening with utf-8 encoding and check headers again
+            csvfile.close()
+            print("Opening file with UTF-8 encoding.")
+            csvfile = open(csvfilepath, "r", encoding="utf-8-sig")
             reader = csv.DictReader(csvfile)
-            if reader.fieldnames != ['url', 'filename']:
-                print("Error: File must have the headers: url,filename")
-                exit(-1)
-            for row in reader:
-                fns.append(row['filename'])
-                urls.append(row['url'])
+        if reader.fieldnames != ['url', 'filename']:
+            #exit for bad headers
+            print(reader.fieldnames)
+            print("Error: File must have the headers: url,filename")
+            exit(-1)
+        for row in reader:
+            fns.append(row['filename'])
+            urls.append(row['url'])
 
         for x in range(len(urls)):
             try:
@@ -90,6 +100,7 @@ def main():
     except Exception as e:
         print(e)
     finally:
+        csvfile.close()
         errfile.close()
 
 if __name__ == '__main__':
