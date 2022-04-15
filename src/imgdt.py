@@ -4,18 +4,20 @@ from PIL import Image
 import requests
 from tkinter import filedialog as fd
 
-def resizeAllImages(imagedir):
+def resizeAllImages(imagedir, errfile):
+    errfile.write("\nSTART OF RESIZEING ERRORS\n")
     imgs = os.listdir(imagedir)
-    try:
-        for x in range(len(imgs)):
+    for x in range(len(imgs)):
+        try:
             fp = imagedir + imgs[x]
             img = Image.open(fp)
             img.thumbnail((600, 600))
             img.save(fp)
             img.close()
             print(f"{fp} was resized successfully!")
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(f"Error on {imgs[x]}: {e}")
+            errfile.write(f"{e}\n")
 
 def main():
     try:
@@ -81,7 +83,7 @@ def main():
                 print("Goodbye!")
                 exit(0)
             elif rsz.lower() == "y":
-                resizeAllImages(imagedir)
+                resizeAllImages(imagedir, errfile)
                 break
             else:
                 print("Please choose y or n!")
