@@ -5,7 +5,7 @@ import requests
 from tkinter import filedialog as fd
 
 def resizeAllImages(imagedir, errfile):
-    errfile.write("\nSTART OF RESIZEING ERRORS\n")
+    errfile.write("\nINFO: Resizing Started\n")
     imgs = os.listdir(imagedir)
     for x in range(len(imgs)):
         try:
@@ -23,11 +23,11 @@ def main():
     try:
         fns = []    # filenames list
         urls = []   # urls list
-        errfilepath = fd.askopenfilename(title="Select Location of Error File") # location of error file
+        errfilepath = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), os.path.pardir), "log.txt"))
         errfile = open(errfilepath, 'w')
-        csvfilepath = fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')]) # location of csv file containing urls and filenames
-        imagedir = fd.askdirectory(title="Select Location of Image Direcotry")  # location of directory to download images to
-        imagedir = imagedir + "/"
+        csvfilepath = os.path.abspath(fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')])) # location of csv file containing urls and filenames
+        imagedir = os.path.abspath(fd.askdirectory(title="Select Location of Image Direcotry"))  # location of directory to download images to
+        imagedir = imagedir + "\\"
         
         # Make sure this is what they want
         while(True):
@@ -51,6 +51,7 @@ def main():
 
     # tries to make a request the image link and download the file
     try:
+        errfile.write("INFO: Downloading Started\n")
         # try to open the file normally and check for correct headers
         csvfile = open(csvfilepath, "r")
         reader = csv.DictReader(csvfile)
