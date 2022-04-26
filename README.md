@@ -7,13 +7,12 @@ A small script I wrote for my manager to download/resize a whole bunch of images
 3. [Troubleshooting](#troubleshooting)
 
 ## Installation
-To install this script just clone this repo and copy the python file to a location on your `$PATH`:</br>
-:exclamation: **You may also install the requirements**
+To install this script just clone this repo, install the requirements, and run the python file:</br>
 ```bash
 git clone https://github.com/BaileyCPSG/imgdt.git
 cd imgdt
 pip install -r requirements.txt
-cp src/imgdt.py path/to/destination
+python src/imgdt.py
 ```
 
 ## Usage
