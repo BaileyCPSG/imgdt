@@ -1,5 +1,6 @@
 # Image Downloader Tool
 A small script I wrote for my manager to download/resize a whole bunch of images from a csv file.
+<p align=center><img src="./images/imgdt.png"></p>
 
 # Table of Contents
 1. [Installation](#installation)
