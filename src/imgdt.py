@@ -26,7 +26,7 @@ def hasFileExt(filenames, errfile):
     for f in filenames:
         ext = f[-3:]
         if not ext in fileExts:
-            errfile.write(f"{f} has no file extension!")
+            errfile.write(f"{f} has the wrong file extension!\n")
             flag = False
     return flag
 
@@ -36,8 +36,10 @@ def main():
         urls = []   # urls list
         errfilepath = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), os.path.pardir), "log.txt"))
         errfile = open(errfilepath, 'w')
-        csvfilepath = os.path.abspath(fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')])) # location of csv file containing urls and filenames
-        imagedir = os.path.abspath(fd.askdirectory(title="Select Location of Image Direcotry"))  # location of directory to download images to
+        csvfilepath = fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')]) # location of csv file containing urls and filenames
+        csvfilepath = os.path.abspath(csvfilepath)
+        imagedir = fd.askdirectory(title="Select Location of Image Direcotry")  # location of directory to download images to
+        imagedir = os.path.abspath(imagedir)
         imagedir = imagedir + "\\"
         
         # Make sure this is what they want
