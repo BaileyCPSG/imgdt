@@ -19,14 +19,27 @@ def resizeAllImages(imagedir, errfile):
             print(f"Error on {imgs[x]}: {e}")
             errfile.write(f"{e}\n")
 
+def hasFileExt(filenames, errfile):
+    flag = True
+    errfile.write("INFO: File Extension Check Started\n")
+    fileExts = ["jpg", "png", "peg"]
+    for f in filenames:
+        ext = f[-3:]
+        if not ext in fileExts:
+            errfile.write(f"{f} has the wrong file extension!\n")
+            flag = False
+    return flag
+
 def main():
     try:
         fns = []    # filenames list
         urls = []   # urls list
         errfilepath = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), os.path.pardir), "log.txt"))
         errfile = open(errfilepath, 'w')
-        csvfilepath = os.path.abspath(fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')])) # location of csv file containing urls and filenames
-        imagedir = os.path.abspath(fd.askdirectory(title="Select Location of Image Direcotry"))  # location of directory to download images to
+        csvfilepath = fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')]) # location of csv file containing urls and filenames
+        csvfilepath = os.path.abspath(csvfilepath)
+        imagedir = fd.askdirectory(title="Select Location of Image Direcotry")  # location of directory to download images to
+        imagedir = os.path.abspath(imagedir)
         imagedir = imagedir + "\\"
         
         # Make sure this is what they want
@@ -51,7 +64,6 @@ def main():
 
     # tries to make a request the image link and download the file
     try:
-        errfile.write("INFO: Downloading Started\n")
         # try to open the file normally and check for correct headers
         csvfile = open(csvfilepath, "r")
         reader = csv.DictReader(csvfile)
@@ -69,6 +81,13 @@ def main():
         for row in reader:
             fns.append(row['filename'])
             urls.append(row['url'])
+
+        # after lists are loaded, check for filename extensions
+        if not hasFileExt(fns, errfile):
+            print("Error: Filenames must include extensions\nPlease check the log file for more info!\n")
+            exit(-1)
+
+        errfile.write("\nINFO: Downloading Started\n")
 
         for x in range(len(urls)):
             try:
