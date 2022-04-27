@@ -26,5 +26,5 @@ Program Execution looks like this:
 5. If Resize was checked resizes images to a max of 600x600.
 
 ## Troubleshooting
-If there are any errors during program execution they will be written to the log file. The log file is located in the src directory of the repo after first execution of script.<br>
-Also the success file is in the same location with.
+- If there are any errors during program execution they will be written to the log file. The log file is located in the src directory of the repo after first execution of script.
+- Also the success file is in the same location as the log file.
