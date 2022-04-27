@@ -1,12 +1,21 @@
-import csv
-import os
+import tkinter as tk
+from tkinter import filedialog as fd
+from tkinter.messagebox import showerror, showinfo
 from PIL import Image
 import requests
-from tkinter import filedialog as fd
+import os
+import csv
 
-def resizeAllImages(imagedir, errfile):
+# Global varialbes
+errfilepath = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), os.path.pardir), "log.txt"))
+errfile = open(errfilepath, 'w')
+sucfilepath = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), os.path.pardir), "success.txt"))
+sucfile = open(sucfilepath, 'w')
+
+def resizeAllImages(imagedir):
     errfile.write("\nINFO: Resizing Started\n")
     imgs = os.listdir(imagedir)
+    counter = 0
     for x in range(len(imgs)):
         try:
             fp = imagedir + imgs[x]
@@ -14,52 +23,64 @@ def resizeAllImages(imagedir, errfile):
             img.thumbnail((600, 600))
             img.save(fp)
             img.close()
-            print(f"{fp} was resized successfully!")
+            sucfile.write(f"RESIZE: {fp} was resized successfully!\n")
+            counter += 1
         except Exception as e:
-            print(f"Error on {imgs[x]}: {e}")
-            errfile.write(f"{e}\n")
+            errfile.write(f"RESIZE: {e}\n")
+    showinfo(title="Success", message=(f"\n{counter}/{len(imgs)} files were resized!\nCheck the log file for errors!"))
 
-def hasFileExt(filenames, errfile):
+def hasFileExt(filenames):
     flag = True
     errfile.write("INFO: File Extension Check Started\n")
     fileExts = ["jpg", "png", "peg"]
     for f in filenames:
         ext = f[-3:]
         if not ext in fileExts:
-            errfile.write(f"{f} has the wrong file extension!\n")
+            errfile.write(f"FILEEXT: {f} has the wrong file extension!\n")
             flag = False
     return flag
 
-def main():
+def getInputFile(inputTextbox):
+    csvfilepath = fd.askopenfilename(title="Select the csv input file...", filetypes=[('.csv', '.csv')])
+    inputTextbox.delete(0, tk.END)
+    inputTextbox.insert(0, csvfilepath)
+
+def getImageDir(imageDirTextbox):
+    imagedir = fd.askdirectory(title="Select the location of image download directory...")
+    imagedir = imagedir + "/"
+    imageDirTextbox.delete(0, tk.END)
+    imageDirTextbox.insert(0, imagedir)
+
+def stop(code):
+    errfile.close()
+    sucfile.close()
+    exit(code)
+
+def start(app):
     try:
         fns = []    # filenames list
         urls = []   # urls list
-        errfilepath = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), os.path.pardir), "log.txt"))
-        errfile = open(errfilepath, 'w')
-        csvfilepath = fd.askopenfilename(title="Select The CSV File", filetypes=[('.csv', '.csv')]) # location of csv file containing urls and filenames
-        csvfilepath = os.path.abspath(csvfilepath)
-        imagedir = fd.askdirectory(title="Select Location of Image Direcotry")  # location of directory to download images to
-        imagedir = os.path.abspath(imagedir)
-        imagedir = imagedir + "\\"
-        
-        # Make sure this is what they want
-        while(True):
-            print(f"Log File: {errfilepath}")
-            print(f"CSV File: {csvfilepath}")
-            print(f"Image Directory: {imagedir}")
-            choice = input("Is this correct (y/N): ")
-            if not choice or choice.lower() == "n":
-                print("Goodbye")
-                errfile.close()
-                exit(0)
-            elif choice.lower() == "y":
-                print("Starting Script...")
-                break
-            else:
-                print("Please choose y or n!")
+        csvfilepath = app.inputTextbox.get()
+        imagedir = app.imageDirTextbox.get()
+
+        # Check for blank input fields
+        if csvfilepath == "" or imagedir == "":
+            errfile.write("ERROR: Locations cannot be null\n")
+            showerror(title="File Error", message="File locations cannot be blank!")
+            return
+
+        # Check if exists
+        if os.path.exists(csvfilepath) and os.path.isfile(csvfilepath) and os.path.exists(imagedir) and os.path.isdir(imagedir):
+            errfile.write("INFO: Starting Script...\n")
+        else:
+            showerror(title="Error", message="Cannot open file or directory. Please double check spelling.")
+            errfile.write("Error: Cannot open file or directory. Please double check spelling.\n")
+            return
+
     except Exception as e:
-        print("Error: You must choose a location!")
-        exit(-1)
+        showerror(title="Error", message="Cannot open file or directory. Please double check spelling.")
+        errfile.write("Error: Cannot open file or directory. Please double check spelling.\n")
+        stop(-1)
 
 
     # tries to make a request the image link and download the file
@@ -70,25 +91,26 @@ def main():
         if reader.fieldnames != ['url', 'filename']:
             # if headers are bad then try opening with utf-8 encoding and check headers again
             csvfile.close()
-            print("Opening file with UTF-8 encoding.")
+            sucfile.write("INFO: Opening file with UTF-8 encoding.\n")
             csvfile = open(csvfilepath, "r", encoding="utf-8-sig")
             reader = csv.DictReader(csvfile)
         if reader.fieldnames != ['url', 'filename']:
             #exit for bad headers
-            print(reader.fieldnames)
-            print("Error: File must have the headers: url,filename")
-            exit(-1)
+            errfile.write("ERROR: File must have the headers: url,filename\n")
+            showerror(title="Error", message="File must have the headers: url,filename")
+            stop(-1)
         for row in reader:
             fns.append(row['filename'])
             urls.append(row['url'])
 
         # after lists are loaded, check for filename extensions
-        if not hasFileExt(fns, errfile):
-            print("Error: Filenames must include extensions\nPlease check the log file for more info!\n")
-            exit(-1)
+        if not hasFileExt(fns):
+            showerror(title="Error", message="Filenames must include extensions\nPlease check the log file for more info!\n")
+            stop(-1)
 
         errfile.write("\nINFO: Downloading Started\n")
 
+        counter = 0
         for x in range(len(urls)):
             try:
                 res = requests.get(urls[x], stream=True)
@@ -96,32 +118,20 @@ def main():
                     with open(imagedir + fns[x], "wb") as outFile:
                         for chunk in res:
                             outFile.write(chunk)
-                    print(f"{fns[x]} downloaded successfully!")
+                    sucfile.write(f"DOWNLOAD: {fns[x]} downloaded successfully!\n")
+                    counter += 1
                 else:
-                    print(f"Error: {urls[x]} had status code: {res.status_code}")
-                    errfile.write(f"Error: {urls[x]} had status code: {res.status_code}\n")
+                    errfile.write(f"DOWNLOAD: {urls[x]} had status code: {res.status_code}\n")
             except Exception as e:
                 print(e)
-                errfile.write(f"{e}\n")
-        print(f"\n{len(os.listdir(imagedir))} files downloaded successfully!\n")
+                errfile.write(f"DOWNLOAD: {e}\n")
+        sucfile.write(f"\nDOWNLOAD:{counter}/{len(urls)} files downloaded successfully!\n")
+        showinfo(title="Success", message=(f"{counter}/{len(urls)} files downloaded successfully!\nCheck the log file for errors."))
         
+        if app.resizeFlag.get():
+            resizeAllImages(imagedir)
 
-        # Ask for resize
-        while(True):
-            rsz = input("\nDo you want to resize all the images (y/N): ")
-            if not rsz or rsz.lower() == "n":
-                print("Goodbye!")
-                exit(0)
-            elif rsz.lower() == "y":
-                resizeAllImages(imagedir, errfile)
-                break
-            else:
-                print("Please choose y or n!")
+        stop(0)
+
     except Exception as e:
-        print(e)
-    finally:
-        csvfile.close()
-        errfile.close()
-
-if __name__ == '__main__':
-    main()
+        errfile.write(f"{e}\n")
