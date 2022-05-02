@@ -3,3 +3,4 @@ log.txt
 success.txt
 src/Tests/images/*
 src/__pycache__/*
+target/*
