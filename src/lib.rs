@@ -27,7 +27,8 @@ pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
     for result in rdr.deserialize() {
         let record: Record = result?;
         println!("{:?}", record);
-        client.get(record.url).send().await?;
+        let response = client.get(record.url).send().await?;
+        println!("{}", response.status());
     }
 
 
